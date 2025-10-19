@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torn Revive Skills Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      /* Changed to dark theme background */
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      /* Dark theme container */
+      background: #1e293b;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      max-width: 1200px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    /* Responsive padding for mobile */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+    }
+
+    .setup-screen {
+      text-align: center;
+    }
+
+    h1 {
+      /* Light text for dark theme */
+      color: #f1f5f9;
+      margin-bottom: 10px;
+      font-size: 2rem;
+    }
+
+    /* Responsive heading */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .subtitle {
+      /* Lighter gray for dark theme */
+      color: #94a3b8;
+      margin-bottom: 30px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 16px;
+      /* Dark theme input styling */
+      background: #334155;
+      border: 2px solid #475569;
+      color: #f1f5f9;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    input::placeholder {
+      color: #64748b;
+    }
+
+    button {
+      /* Blue gradient for dark theme */
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .data-screen {
+      display: none;
+    }
+
+    .data-screen.active {
+      display: block;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status {
+      /* Light gray for dark theme */
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .logout-btn {
+      background: #dc2626;
+      padding: 8px 20px;
+      font-size: 14px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #94a3b8;
+    }
+
+    .spinner {
+      border: 3px solid #334155;
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .members-grid {
+      display: grid;
+      /* Responsive grid */
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .members-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .member-card {
+      /* Dark theme card */
+      background: #334155;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      padding: 16px;
+      transition: box-shadow 0.3s, transform 0.2s;
+    }
+
+    .member-card:hover {
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .member-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .member-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .member-info h3 {
+      /* Light text */
+      color: #f1f5f9;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .member-info p {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .member-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stat {
+      /* Darker stat background */
+      background: #1e293b;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      /* Light text */
+      color: #f1f5f9;
+      margin-top: 2px;
+    }
+
+    .revive-skill {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      grid-column: 1 / -1;
+    }
+
+    .revive-skill .stat-label {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .revive-skill .stat-value {
+      color: white;
+      font-size: 24px;
+    }
+
+    .error {
+      /* Dark theme error */
+      background: #7f1d1d;
+      color: #fca5a5;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Responsive controls for mobile */
+    @media (max-width: 640px) {
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* New numbered pagination buttons */
+    .pagination button {
+      padding: 8px 12px;
+      font-size: 14px;
+      min-width: 40px;
+    }
+
+    .pagination button.active {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .page-info {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .reload-all-btn {
+      background: #10b981;
+      padding: 8px 20px;
+      font-size: 14px;
+    }
+
+    .reload-btn {
+      background: #0891b2;
+      padding: 6px 12px;
+      font-size: 12px;
+      margin-top: 8px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Setup Screen -->
+    <div class="setup-screen" id="setupScreen">
+      <h1>🏥 Torn Revive Skills Tracker</h1>
+      <p class="subtitle">Track faction member revive skills</p>
+      
+      <!-- Added Faction ID input -->
+      <div class="input-group">
+        <input 
+          type="text" 
+          id="factionIdInput" 
+          placeholder="Enter Faction ID"
+          autocomplete="off"
+        />
+      </div>
+      
+      <div class="input-group">
+        <input 
+          type="text" 
+          id="apiKeyInput" 
+          placeholder="Enter your Torn API Key"
+          autocomplete="off"
+        />
+      </div>
+      
+      <button id="saveKeyBtn">Save & Load Data</button>
+    </div>
+
+    <!-- Data Screen -->
+    <div class="data-screen" id="dataScreen">
+      <div class="header">
+        <div>
+          <h1>🏥 Revive Skills Tracker</h1>
+          <p class="status" id="statusText">Loading...</p>
+        </div>
+        <button class="logout-btn" id="logoutBtn">Change Settings</button>
+      </div>
+
+      <div id="errorContainer"></div>
+      
+      <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        <p>Fetching faction data...</p>
+      </div>
+
+      <!-- Updated pagination with numbered buttons -->
+      <div class="controls" id="controls" style="display: none;">
+        <div class="pagination" id="pagination">
+          <!-- Pagination buttons will be dynamically generated -->
+        </div>
+        <button class="reload-all-btn" id="reloadAllBtn">Reload All</button>
+      </div>
+
+      <div class="members-grid" id="membersGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    const FETCH_DELAY = 5000; // 5 seconds between requests
+    const MEMBERS_PER_PAGE = 5;
+
+    // DOM Elements
+    const setupScreen = document.getElementById('setupScreen');
+    const dataScreen = document.getElementById('dataScreen');
+    const factionIdInput = document.getElementById('factionIdInput');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const saveKeyBtn = document.getElementById('saveKeyBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const statusText = document.getElementById('statusText');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const membersGrid = document.getElementById('membersGrid');
+    const errorContainer = document.getElementById('errorContainer');
+    const controls = document.getElementById('controls');
+    const pagination = document.getElementById('pagination');
+    const reloadAllBtn = document.getElementById('reloadAllBtn');
+
+    let currentPage = 1;
+    let allMembers = [];
+    let memberDataCache = {}; // Cache for lazy loading
+
+    // Utility Functions
+    function getApiKey() {
+      return localStorage.getItem('tornApiKey');
+    }
+
+    function saveApiKey(key) {
+      localStorage.setItem('tornApiKey', key);
+    }
+
+    function getFactionId() {
+      return localStorage.getItem('tornFactionId');
+    }
+
+    function saveFactionId(id) {
+      localStorage.setItem('tornFactionId', id);
+    }
+
+    function clearSettings() {
+      localStorage.removeItem('tornApiKey');
+      localStorage.removeItem('tornFactionId');
+      localStorage.removeItem('tornMembersData');
+      localStorage.removeItem('tornMemberDataCache');
+    }
+
+    function getCachedData() {
+      const cached = localStorage.getItem('tornMembersData');
+      if (!cached) return null;
+
+      const { data, timestamp } = JSON.parse(cached);
+      const now = Date.now();
+
+      if (now - timestamp > CACHE_DURATION) {
+        localStorage.removeItem('tornMembersData');
+        return null;
+      }
+
+      return data;
+    }
+
+    function setCachedData(data) {
+      const cacheObject = {
+        data,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('tornMembersData', JSON.stringify(cacheObject));
+    }
+
+    function getMemberDataCache() {
+      const cached = localStorage.getItem('tornMemberDataCache');
+      if (!cached) return {};
+      
+      const { data, timestamp } = JSON.parse(cached);
+      const now = Date.now();
+
+      if (now - timestamp > CACHE_DURATION) {
+        localStorage.removeItem('tornMemberDataCache');
+        return {};
+      }
+
+      return data;
+    }
+
+    function setMemberDataCache(cache) {
+      const cacheObject = {
+        data: cache,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('tornMemberDataCache', JSON.stringify(cacheObject));
+    }
+
+    function showError(message) {
+      errorContainer.innerHTML = `<div class="error">${message}</div>`;
+    }
+
+    function clearError() {
+      errorContainer.innerHTML = '';
+    }
+
+    async function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // API Functions
+    async function fetchWithAuth(url, apiKey) {
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `ApiKey ${apiKey}`,
+          'accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      return response.json();
+    }
+
+    async function fetchFactionMembers(apiKey, factionId) {
+      const url = `https://api.torn.com/v2/faction/${factionId}/members?striptags=true`;
+      return fetchWithAuth(url, apiKey);
+    }
+
+    async function fetchUserReviveSkill(userId, apiKey) {
+      const url = `https://api.torn.com/v2/user/${userId}/personalstats?stat=reviveskill&comment=ReviveSkillTracking`;
+      return fetchWithAuth(url, apiKey);
+    }
+
+    async function fetchUserProfile(userId, apiKey) {
+      const url = `https://api.torn.com/v2/user/${userId}/profile?striptags=true`;
+      return fetchWithAuth(url, apiKey);
+    }
+
+    async function fetchSingleMemberData(memberId, apiKey) {
+      try {
+        const [reviveData, profileData] = await Promise.all([
+          fetchUserReviveSkill(memberId, apiKey),
+          fetchUserProfile(memberId, apiKey)
+        ]);
+
+        let reviveSkill = 1;
+        if (reviveData.personalstats && Array.isArray(reviveData.personalstats)) {
+          const reviveSkillData = reviveData.personalstats.find(stat => stat.name === 'reviveskill');
+          if (reviveSkillData && reviveSkillData.value !== undefined) {
+            reviveSkill = reviveSkillData.value;
+          }
+        }
+
+        return {
+          reviveSkill,
+          profile: profileData.profile
+        };
+      } catch (error) {
+        console.error(`Error fetching data for member ${memberId}:`, error);
+        return {
+          reviveSkill: 'Error',
+          profile: null
+        };
+      }
+    }
+
+    async function loadFactionMembers(apiKey, factionId) {
+      try {
+        clearError();
+        loadingIndicator.style.display = 'block';
+        membersGrid.innerHTML = '';
+        controls.style.display = 'none';
+
+        statusText.textContent = 'Fetching faction members...';
+        const factionData = await fetchFactionMembers(apiKey, factionId);
+        const members = factionData.members || [];
+
+        allMembers = members;
+        memberDataCache = getMemberDataCache();
+
+        setCachedData(members);
+        
+        currentPage = 1;
+        await displayPaginatedMembers();
+        loadingIndicator.style.display = 'none';
+        controls.style.display = 'flex';
+        statusText.textContent = `Last updated: ${new Date().toLocaleString()}`;
+
+      } catch (error) {
+        console.error('Error loading data:', error);
+        showError(`Failed to load data: ${error.message}`);
+        loadingIndicator.style.display = 'none';
+        statusText.textContent = 'Error loading data';
+      }
+    }
+
+    async function reloadAllMemberData(apiKey) {
+      try {
+        clearError();
+        loadingIndicator.style.display = 'block';
+        controls.style.display = 'none';
+
+        statusText.textContent = `Reloading data for ${allMembers.length} members...`;
+
+        memberDataCache = {};
+
+        for (let i = 0; i < allMembers.length; i++) {
+          const member = allMembers[i];
+          statusText.textContent = `Loading member ${i + 1}/${allMembers.length}: ${member.name}`;
+
+          const memberData = await fetchSingleMemberData(member.id, apiKey);
+          memberDataCache[member.id] = memberData;
+
+          if (i < allMembers.length - 1) {
+            await delay(FETCH_DELAY);
+          }
+        }
+
+        setMemberDataCache(memberDataCache);
+        
+        await displayPaginatedMembers();
+        loadingIndicator.style.display = 'none';
+        controls.style.display = 'flex';
+        statusText.textContent = `All data reloaded at ${new Date().toLocaleString()}`;
+
+      } catch (error) {
+        console.error('Error reloading all data:', error);
+        showError(`Failed to reload data: ${error.message}`);
+        loadingIndicator.style.display = 'none';
+        controls.style.display = 'flex';
+      }
+    }
+
+    async function reloadSingleMember(memberId, memberName) {
+      const apiKey = getApiKey();
+      if (!apiKey) return;
+
+      try {
+        statusText.textContent = `Reloading ${memberName}...`;
+        
+        const memberData = await fetchSingleMemberData(memberId, apiKey);
+        
+        memberDataCache[memberId] = memberData;
+        setMemberDataCache(memberDataCache);
+
+        await displayPaginatedMembers();
+        statusText.textContent = `${memberName} reloaded at ${new Date().toLocaleString()}`;
+      } catch (error) {
+        console.error(`Error reloading ${memberName}:`, error);
+        showError(`Failed to reload ${memberName}: ${error.message}`);
+      }
+    }
+
+    async function displayPaginatedMembers() {
+      membersGrid.innerHTML = '';
+
+      const totalPages = Math.ceil(allMembers.length / MEMBERS_PER_PAGE);
+      const startIndex = (currentPage - 1) * MEMBERS_PER_PAGE;
+      const endIndex = startIndex + MEMBERS_PER_PAGE;
+      const membersToDisplay = allMembers.slice(startIndex, endIndex);
+
+      renderPagination(totalPages);
+
+      const apiKey = getApiKey();
+
+      for (const member of membersToDisplay) {
+        if (!memberDataCache[member.id]) {
+          statusText.textContent = `Loading ${member.name}...`;
+          const memberData = await fetchSingleMemberData(member.id, apiKey);
+          memberDataCache[member.id] = memberData;
+          setMemberDataCache(memberDataCache);
+          await delay(FETCH_DELAY);
+        }
+
+        const data = memberDataCache[member.id];
+        const profileImage = data.profile?.image || 'https://www.torn.com/images/v2/default-avatar.svg';
+        const level = data.profile?.level || member.level || 'N/A';
+        const age = data.profile?.age || 'N/A';
+        const reviveSkill = typeof data.reviveSkill === 'number' 
+          ? data.reviveSkill.toLocaleString() 
+          : data.reviveSkill;
+
+        const card = document.createElement('div');
+        card.className = 'member-card';
+
+        card.innerHTML = `
+          <div class="member-header">
+            <img src="${profileImage}" alt="${member.name}" class="member-avatar" />
+            <div class="member-info">
+              <h3>${member.name}</h3>
+              <p>${member.position || 'Member'}</p>
+            </div>
+          </div>
+          <div class="member-stats">
+            <div class="stat revive-skill">
+              <div class="stat-label">Revive Skill</div>
+              <div class="stat-value">${reviveSkill}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Level</div>
+              <div class="stat-value">${level}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Age (days)</div>
+              <div class="stat-value">${age}</div>
+            </div>
+          </div>
+          <button class="reload-btn" onclick="reloadSingleMember(${member.id}, '${member.name}')">Reload</button>
+        `;
+
+        membersGrid.appendChild(card);
+      }
+
+      if (membersToDisplay.length > 0) {
+        statusText.textContent = `Showing ${startIndex + 1}-${Math.min(endIndex, allMembers.length)} of ${allMembers.length} members`;
+      }
+    }
+
+    function renderPagination(totalPages) {
+      pagination.innerHTML = '';
+
+      // Previous button
+      const prevBtn = document.createElement('button');
+      prevBtn.textContent = '←';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          displayPaginatedMembers();
+        }
+      };
+      pagination.appendChild(prevBtn);
+
+      // Page number buttons
+      for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        if (i === currentPage) {
+          pageBtn.classList.add('active');
+        }
+        pageBtn.onclick = () => {
+          currentPage = i;
+          displayPaginatedMembers();
+        };
+        pagination.appendChild(pageBtn);
+      }
+
+      // Next button
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = '→';
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          displayPaginatedMembers();
+        }
+      };
+      pagination.appendChild(nextBtn);
+    }
+
+    // Event Handlers
+    saveKeyBtn.addEventListener('click', async () => {
+      const apiKey = apiKeyInput.value.trim();
+      const factionId = factionIdInput.value.trim();
+      
+      if (!apiKey) {
+        showError('Please enter an API key');
+        return;
+      }
+
+      if (!factionId) {
+        showError('Please enter a Faction ID');
+        return;
+      }
+
+      saveApiKey(apiKey);
+      saveFactionId(factionId);
+      setupScreen.style.display = 'none';
+      dataScreen.classList.add('active');
+
+      const cachedData = getCachedData();
+      if (cachedData) {
+        allMembers = cachedData;
+        memberDataCache = getMemberDataCache();
+        currentPage = 1;
+        await displayPaginatedMembers();
+        loadingIndicator.style.display = 'none';
+        controls.style.display = 'flex';
+        const cacheInfo = JSON.parse(localStorage.getItem('tornMembersData'));
+        const cacheDate = new Date(cacheInfo.timestamp);
+        statusText.textContent = `Loaded from cache (${cacheDate.toLocaleString()})`;
+      } else {
+        await loadFactionMembers(apiKey, factionId);
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      clearSettings();
+      dataScreen.classList.remove('active');
+      setupScreen.style.display = 'block';
+      apiKeyInput.value = '';
+      factionIdInput.value = '';
+      membersGrid.innerHTML = '';
+      clearError();
+      allMembers = [];
+      memberDataCache = {};
+    });
+
+    reloadAllBtn.addEventListener('click', async () => {
+      const apiKey = getApiKey();
+      if (apiKey) {
+        await reloadAllMemberData(apiKey);
+      }
+    });
+
+    window.reloadSingleMember = reloadSingleMember;
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedKey = getApiKey();
+      const savedFactionId = getFactionId();
+      
+      if (savedKey && savedFactionId) {
+        setupScreen.style.display = 'none';
+        dataScreen.classList.add('active');
+
+        const cachedData = getCachedData();
+        if (cachedData) {
+          allMembers = cachedData;
+          memberDataCache = getMemberDataCache();
+          currentPage = 1;
+          displayPaginatedMembers();
+          loadingIndicator.style.display = 'none';
+          controls.style.display = 'flex';
+          const cacheInfo = JSON.parse(localStorage.getItem('tornMembersData'));
+          const cacheDate = new Date(cacheInfo.timestamp);
+          statusText.textContent = `Loaded from cache (${cacheDate.toLocaleString()})`;
+        } else {
+          loadFactionMembers(savedKey, savedFactionId);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
